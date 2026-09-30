@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NFT Drop Tracker</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Inter, Arial, sans-serif;
+            background:
+                radial-gradient(circle at 20% 10%, #33206b 0, transparent 30%),
+                radial-gradient(circle at 90% 80%, #172b5c 0, transparent 30%),
+                #07070b;
+            color: white;
+            min-height: 100vh;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: blur(20px);
+            background: rgba(7,7,11,.72);
+            border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: auto;
+            padding: 18px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -.5px;
+        }
+
+        .logo span {
+            color: #9b7cff;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: #54e38e;
+            border-radius: 50%;
+            box-shadow: 0 0 12px #54e38e;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: auto;
+            padding: 50px 22px 80px;
+        }
+
+        .hero {
+            padding: 35px 0 45px;
+        }
+
+        .hero h1 {
+            font-size: clamp(38px, 7vw, 76px);
+            line-height: .95;
+            max-width: 850px;
+            letter-spacing: -3px;
+        }
+
+        .hero h1 span {
+            color: #9b7cff;
+        }
+
+        .hero p {
+            margin-top: 22px;
+            color: #aaa;
+            max-width: 650px;
+            font-size: 17px;
+            line-height: 1.6;
+        }
+
+        .section {
+            margin-top: 35px;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .section-title h2 {
+            font-size: 25px;
+        }
+
+        .count {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .drops {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 18px;
+        }
+
+        .card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 22px;
+            background: rgba(255,255,255,.055);
+            border: 1px solid rgba(255,255,255,.09);
+            padding: 12px;
+            transition: .3s ease;
+            animation: appear .5s ease both;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(155,124,255,.6);
+            box-shadow: 0 20px 50px rgba(0,0,0,.35);
+        }
+
+        .image {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 16px;
+            object-fit: cover;
+            background: #15151d;
+        }
+
+        .info {
+            padding: 14px 4px 5px;
+        }
+
+        .name {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .collection {
+            color: #888;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .timer {
+            margin-top: 13px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(155,124,255,.1);
+            color: #b9a6ff;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .live {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-top: 13px;
+            color: #54e38e;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .live i {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #54e38e;
+            box-shadow: 0 0 10px #54e38e;
+        }
+
+        .empty {
+            padding: 50px;
+            text-align: center;
+            color: #777;
+            border: 1px dashed rgba(255,255,255,.1);
+            border-radius: 20px;
+        }
+
+        .notification {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 100;
+            width: min(360px, calc(100% - 40px));
+            padding: 17px;
+            border-radius: 17px;
+            background: rgba(25,25,35,.95);
+            border: 1px solid rgba(155,124,255,.4);
+            box-shadow: 0 20px 60px rgba(0,0,0,.5);
+            transform: translateY(130px);
+            opacity: 0;
+            transition: .35s ease;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .notification strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .notification span {
+            color: #999;
+            font-size: 13px;
+        }
+
+        @keyframes appear {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media(max-width:600px) {
+            .nav {
+                padding: 15px;
+            }
+
+            main {
+                padding: 30px 15px 60px;
+            }
+
+            .hero h1 {
+                letter-spacing: -2px;
+            }
+
+            .hero p {
+                font-size: 15px;
+            }
+
+            .drops {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+
+            .card {
+                border-radius: 16px;
+                padding: 8px;
+            }
+
+            .image {
+                border-radius: 11px;
+            }
+
+            .info {
+                padding: 10px 2px 3px;
+            }
+
+            .name {
+                font-size: 14px;
+            }
+
+            .collection {
+                font-size: 11px;
+            }
+
+            .timer {
+                font-size: 11px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="nav">
+        <div class="logo">NFT<span>DROP</span></div>
+
+        <div class="status">
+            <div class="dot"></div>
+            Monitoring
+        </div>
+    </div>
+</header>
+
+<main>
+
+    <section class="hero">
+        <h1>
+            Следи за<br>
+            <span>NFT-дропами.</span>
+        </h1>
+
+        <p>
+            Все доступные NFT, ближайшие дропы и новые появления
+            в одном месте. Данные автоматически обновляются.
+        </p>
+    </section>
+
+    <section class="section">
+        <div class="section-title">
+            <h2>Ближайшие дропы</h2>
+            <div class="count" id="dropCount">0 дропов</div>
+        </div>
+
+        <div class="drops" id="drops"></div>
+    </section>
+
+    <section class="section">
+        <div class="section-title">
+            <h2>Все NFT</h2>
+            <div class="count" id="nftCount">0 NFT</div>
+        </div>
+
+        <div class="drops" id="nfts"></div>
+    </section>
+
+</main>
+
+<div class="notification" id="notification">
+    <strong id="notificationTitle">Новый NFT</strong>
+    <span id="notificationText">Обнаружен новый дроп.</span>
+</div>
+
+<script>
+let previousNFTs = [];
+
+async function loadData() {
+    try {
+        const response = await fetch(
+            "data/drops.json?t=" + Date.now()
+        );
+
+        if (!response.ok)
+            throw new Error("Не удалось загрузить данные");
+
+        const data = await response.json();
+
+        renderDrops(data.drops || []);
+        renderNFTs(data.nfts || []);
+
+        checkNewNFTs(data.nfts || []);
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function renderDrops(drops) {
+    const container = document.getElementById("drops");
+
+    document.getElementById("dropCount").textContent =
+        drops.length + " дропов";
+
+    if (!drops.length) {
+        container.innerHTML =
+            '<div class="empty">Пока нет запланированных дропов</div>';
+        return;
+    }
+
+    container.innerHTML = drops.map((drop, index) => `
+        <article class="card" style="animation-delay:${index * 70}ms">
+
+            <img
+                class="image"
+                src="${escapeHTML(drop.image)}"
+                alt=""
+            >
+
+            <div class="info">
+                <div class="name">
+                    ${escapeHTML(drop.name)}
+                </div>
+
+                <div class="collection">
+                    ${escapeHTML(drop.collection || "")}
+                </div>
+
+                <div
+                    class="timer"
+                    data-date="${escapeHTML(drop.date)}"
+                >
+                    Загрузка...
+                </div>
+            </div>
+
+        </article>
+    `).join("");
+}
+
+function renderNFTs(nfts) {
+    const container = document.getElementById("nfts");
+
+    document.getElementById("nftCount").textContent =
+        nfts.length + " NFT";
+
+    if (!nfts.length) {
+        container.innerHTML =
+            '<div class="empty">NFT пока не добавлены</div>';
+        return;
+    }
+
+    container.innerHTML = nfts.map((nft, index) => `
+        <article class="card" style="animation-delay:${index * 50}ms">
+
+            <img
+                class="image"
+                src="${escapeHTML(nft.image)}"
+                alt=""
+            >
+
+            <div class="info">
+
+                <div class="name">
+                    ${escapeHTML(nft.name)}
+                </div>
+
+                <div class="collection">
+                    ${escapeHTML(nft.collection || "")}
+                </div>
+
+                <div class="live">
+                    <i></i>
+                    Доступен
+                </div>
+
+            </div>
+
+        </article>
+    `).join("");
+}
+
+function updateTimers() {
+    document.querySelectorAll(".timer").forEach(timer => {
+
+        const target = new Date(timer.dataset.date).getTime();
+        const now = Date.now();
+        const difference = target - now;
+
+        if (difference <= 0) {
+            timer.textContent = "Дроп уже начался";
+            return;
+        }
+
+        const seconds = Math.floor(difference / 1000);
+
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor((seconds % 86400) / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+
+        timer.textContent =
+            `${days}д ${pad(hours)}:${pad(minutes)}:${pad(secs)}`;
+    });
+}
+
+function pad(number) {
+    return String(number).padStart(2, "0");
+}
+
+function checkNewNFTs(nfts) {
+
+    if (!previousNFTs.length) {
+        previousNFTs = nfts.map(n => n.id);
+        return;
+    }
+
+    const newNFTs = nfts.filter(
+        nft => !previousNFTs.includes(nft.id)
+    );
+
+    if (newNFTs.length) {
+        const nft = newNFTs[0];
+
+        showNotification(
+            "Новый NFT!",
+            nft.name + " появился в списке."
+        );
+    }
+
+    previousNFTs = nfts.map(n => n.id);
+}
+
+function showNotification(title, text) {
+
+    document.getElementById("notificationTitle").textContent = title;
+    document.getElementById("notificationText").textContent = text;
+
+    const notification =
+        document.getElementById("notification");
+
+    notification.classList.add("show");
+
+    setTimeout(() => {
+        notification.classList.remove("show");
+    }, 5000);
+}
+
+function escapeHTML(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+loadData();
+
+setInterval(loadData, 60000);
+
+setInterval(updateTimers, 1000);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "drops": [
+    {
+      "id": "drop-001",
+      "name": "Example Drop",
+      "collection": "Example Collection",
+      "image": "https://placehold.co/600x600",
+      "date": "2026-10-01T18:00:00+03:00"
+    }
+  ],
+  "nfts": [
+    {
+      "id": "nft-001",
+      "name": "Example NFT",
+      "collection": "Example Collection",
+      "image": "https://placehold.co/600x600"
+    }
+  ]
+}
